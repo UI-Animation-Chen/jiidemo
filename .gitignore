@@ -1,0 +1,7 @@
+*.o
+main
+*/main
+*/*/main
+*/*/*/main
+*/*/*/*/main
+*/*/*/*/*/main
