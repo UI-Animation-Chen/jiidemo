@@ -3,8 +3,8 @@ system = linux
 ifeq (macos, $(system))
 main: main.o
 	g++ \
-	-L/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/ \
-	Contents/Home/jre/lib/server/ \
+	-L/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/\
+Contents/Home/jre/lib/server/ \
 	main.o -o main -ljvm
 
 main.o: main.cpp
