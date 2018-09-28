@@ -58,6 +58,7 @@ void * callJava(void * arg) {
         goto detach;
     }
     env->CallStaticVoidMethod(cls, mid, NULL);
+	sleep(1);
     
 detach:
     if (env->ExceptionOccurred()) {
@@ -144,8 +145,6 @@ void invokeJavaMain() {
     
     pthread_t pthreads[3];
     createNativeThread(pthreads, 3, jvm);
-
-	sleep(1);
 
     // this method will return after java main method returned.
 	env->CallStaticVoidMethod(javaCls, mid, args);
