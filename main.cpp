@@ -15,33 +15,29 @@
 
 #define USER_CLASSPATH "." /* where class is */
 
-void printArgCV(int argc, const char * argv[]) {
-	std::cout << "argc: " << argc << "\n";
-	for (int i = 0; i < argc; i++) {
-		std::cout << "argv[" << i << "]: \"" << argv[i] << "\".\n";
-	}
-}
-
 /**
  * do not need any shared library if use RegisterNatives.
  */
-void JNICALL javaCall(JNIEnv *env, jobject thiz) {
-	std::cout << "javaCall has executed\n";
+void JNICALL nativeThreadId(JNIEnv *env, jobject thiz) {
+	std::cout << "tid: " << pthread_self() << std::endl;
 }
 /**
- * register a native method(here is the javaCall) to jvm.
+ * register a native method(here is the nativeThreadId) to jvm.
  */
-void registerJavaCall(JNIEnv *env, jclass javaCls) {
+void registerNativeMethod(JNIEnv *env, jclass javaCls) {
 	JNINativeMethod nm;
-	char cstr[] = "javaCall";
+	char cstr[] = "nativeThreadId";
 	nm.name = cstr;
 	char cstr1[] = "()V";
 	nm.signature = cstr1;
-	nm.fnPtr = (void*)javaCall;
+	nm.fnPtr = (void*)nativeThreadId;
 	env->RegisterNatives(javaCls, &nm, 1);
 }
 
-void * callJava1(void * arg) {
+/**
+ * invoke java method
+ */
+void * callJava(void * arg) {
     JavaVM *jvm;
     jvm = (JavaVM *)arg;
     JNIEnv *env;
@@ -77,7 +73,8 @@ detach:
  */
 void createNativeThread(pthread_t pthreads[], int len, JavaVM *jvm) {
     for (int i = 0; i < len; i++) {
-        pthread_create(&pthreads[i], NULL, callJava1, jvm);
+		/* last params jvm will be passed to callJava method. */
+        pthread_create(&pthreads[i], NULL, callJava, jvm);
         //pthread_join(pthreads[i], NULL);
     }
 }
@@ -112,7 +109,17 @@ void invokeJavaMain() {
 		goto destroy;
 	}
 
-	registerJavaCall(env, javaCls);
+	jmethodID javaF;
+	javaF = env->GetStaticMethodID(javaCls, "showThread", "()V");
+	if (javaF == NULL) {
+		std::cout << "can't get showThread method.\n";
+		goto destroy;
+	}
+	env->CallStaticVoidMethod(javaCls, javaF);
+
+	registerNativeMethod(env, javaCls);
+
+	nativeThreadId(NULL, NULL);
 
 	jmethodID mid;
 	mid = env->GetStaticMethodID(javaCls, "main", "([Ljava/lang/String;)V");
@@ -138,12 +145,14 @@ void invokeJavaMain() {
     pthread_t pthreads[3];
     createNativeThread(pthreads, 3, jvm);
 
+	sleep(1);
+
     // this method will return after java main method returned.
 	env->CallStaticVoidMethod(javaCls, mid, args);
 
-	std::cout << "below java-main in cpp\n";
-    
-    sleep(1);
+	std::cout << "below invoke java main\n";
+
+	sleep(1); /* wait for other threads exit */
 	
 destroy:
 	if (env->ExceptionOccurred()) {
@@ -154,12 +163,6 @@ destroy:
 
 int main(int argc, const char * argv[]) {
 	invokeJavaMain();
-	//printArgCV(argc, argv);
 	return 0;
 }
-
-
-
-
-
 
