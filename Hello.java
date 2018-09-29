@@ -18,6 +18,8 @@ public class Hello {
 	public static void newThread() {
 		new Thread(new Runnable() {
 			public void run() {
+				System.out.println("---- new thread ----");
+				showThread();
 				new Hello().nativeThreadId();
 			}
 		}).start();
