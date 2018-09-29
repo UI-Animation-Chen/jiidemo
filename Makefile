@@ -1,16 +1,14 @@
 system = linux
 
 ifeq (macos, $(system))
+
+java_home = /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home
+
 main: main.o
-	g++ \
-	-L/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/\
-Contents/Home/jre/lib/server/ \
-	main.o -o main -ljvm
+	g++ -L$(java_home)/jre/lib/server main.o -o main -ljvm
 
 main.o: main.cpp
-	g++ \
-	-I/System/Library/Frameworks/JavaVM.framework/Headers/ \
-	-c main.cpp -o main.o
+	g++ -I$(java_home)/include -I$(java_home)/include/darwin -c main.cpp -o main.o
 endif
 
 ifeq (linux, $(system))
