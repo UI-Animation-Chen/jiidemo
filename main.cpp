@@ -160,7 +160,15 @@ destroy:
 	jvm->DestroyJavaVM();
 }
 
-int main(int argc, const char * argv[]) {
+void printEnvs(const char *env[]) {
+    while (*env != NULL) {
+        std::cout << *env << std::endl;
+        env++;
+    }
+}
+
+int main(int argc, const char *argv[], const char *env[]) {
+    // printEnvs(env);
 	invokeJavaMain();
 	return 0;
 }
